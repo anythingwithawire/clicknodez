@@ -365,17 +365,20 @@ class SceneClass(QGraphicsScene):
         print("====>>", self.itemAt(x,y, qt))
         if event.button() == Qt.LeftButton and self.node_start is None :
             SceneClass.prepStartEndNode = 1
-            node = XNode(None, event.scenePos(), "bill")
-            # TODO Numbers node
-            self.addItem(node)
-            node.setPos(event.scenePos())
-            self.node_start = node
+            nodeP = XNode(None, event.scenePos(), 120, "Node 000")
+            self.addItem(nodeP)
+            for n in range(0,16):
+                node = XNode(None, event.scenePos()+ QPoint(0,22) * n, 10, str(n).zfill(2))
+                # TODO Numbers node
+                self.addItem(node)
+                node.setParentItem(nodeP)
+                node.setPos(110, -130 +(22 * n))
+                self.node_start = node
         else:
             self.node_start = None
             SceneClass.prepStartEndNode = 0
-
             self.saveNodeToGlobalList()
-        # def wheelEvent(self, source, event):
+
 
     def sub(self):
         print("sub")
@@ -404,7 +407,7 @@ class SceneClass(QGraphicsScene):
         qt = QTransform()
         global listNode, numberNode, temporListNodes
         if event.button() == Qt.LeftButton and self.node_start and not self.itemAt(x,y, qt):
-            node = XNode(None, event.scenePos(), "fred")
+            node = XNode(None, event.scenePos(), 10, "fred")
             self.addItem(node)
 
 
@@ -487,7 +490,7 @@ class Node(QGraphicsEllipseItem):
         return QGraphicsItem.itemChange(self, change, value)
 
 
-class XNode(QGraphicsRectItem):
+class XNode(QGraphicsItem):
     """
     A simple QGraphicsItem that can be dragged around the scene.
     Of course, this behavior is easier to achieve if you simply use the default
@@ -498,7 +501,7 @@ class XNode(QGraphicsRectItem):
     (e.g. only allowing left-right movement instead of arbitrary movement).
     """
 
-    def __init__(self, parent, position, name):
+    def __init__(self, parent, position, size, name):
         super(XNode, self).__init__(parent)
         self.setAcceptHoverEvents(True)
         self.edges = []
@@ -509,24 +512,30 @@ class XNode(QGraphicsRectItem):
         self.icolor = Qt.red
         self.setAcceptHoverEvents(True)
         self.name = name
+        self.size = size
 
         #i = GraphicsRectItem(-50, -50, 100, 100)
         #self.parentItem().scene().addItem(i)
 
     def boundingRect(self):
-        return QRectF(-25, -25, 50, 50)
+        adjust = self.size/4
+        return QRectF(-self.size-adjust, -self.size-adjust, adjust +(self.size * 2), adjust +(self.size * 2))
 
     def paint(self, painter, option, widget):
         painter.setBrush(self.icolor)
         p = QPen(Qt.green)
         if self.isSelected():
             p = QPen(Qt.darkYellow)
+        painter.drawRect(self.boundingRect())
 
         p.setWidth(3)
         painter.setPen(p)
         #painter.GraphicsRectItem(self.boundingRect())
         p = QPen(Qt.green)
-        painter.drawText(QPointF(-10, 0), self.name)
+        f = QFont()
+        fw = QFontMetricsF(f).width(self.name)
+        fh = QFontMetricsF(f).height()
+        painter.drawText(QPointF(-fw/2, fh/4), self.name)
 
 
     def hoverEnterEvent(self, event):
@@ -545,16 +554,16 @@ class XNode(QGraphicsRectItem):
         actualCursorPos = event.scenePos()
 
         origPos = self.scenePos()
-        print(origCursorPos.x(), origCursorPos.y(), "Old position of x,y")
+        '''print(origCursorPos.x(), origCursorPos.y(), "Old position of x,y")
         if len(temporListNodes) > 0:
             for i in range(len(temporListNodes)):
                 for j in range(len(temporListNodes[i])):
-                    print(temporListNodes[i][j], 'temporListNodes [i][j]')
+                    print(temporListNodes[i][j], 'temporListNodes [i][j]')'''
         aktualCursorPos_x = actualCursorPos.x() - origCursorPos.x() + origPos.x()
         aktualCursorPos_y = actualCursorPos.y() - origCursorPos.y() + origPos.y()
-        self.setPos(QPointF(aktualCursorPos_x, aktualCursorPos_y))
+        self.setPos(QPointF((aktualCursorPos_x), (aktualCursorPos_y)))
 
-        print((aktualCursorPos_x, aktualCursorPos_y), "New position of x,y")
+        #print((aktualCursorPos_x, aktualCursorPos_y), "New position of x,y")
 
     def mousePressEvent(self, event):
         self.setSelected(True)
@@ -614,7 +623,7 @@ class Edge(QGraphicsLineItem):
 
     def adjust(self):
         self.prepareGeometryChange()
-        self.setLine(QLineF(self.dest.pos() + QPointF(-10, -10), self.source.pos() + QPointF(-10, -10)))
+        self.setLine(QLineF(self.dest.pos() + QPointF(-0, -0), self.source.pos() + QPointF(-0, -0)))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
