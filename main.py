@@ -1,5 +1,8 @@
 import sys
+from clipboard import ClipboardEx
+from dataView import DataWindow
 
+import PyQt5
 from PyQt5 import QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -15,6 +18,8 @@ import sys
 from PyQt5.QtCore import Qt, QRectF, QPointF
 from PyQt5.QtGui import QBrush, QPainterPath, QPainter, QColor, QPen, QPixmap
 from PyQt5.QtWidgets import QGraphicsRectItem, QApplication, QGraphicsView, QGraphicsScene, QGraphicsItem
+
+
 
 listNode = []
 numberNode = 0
@@ -273,7 +278,6 @@ class GraphicsRectItem(QGraphicsRectItem):
 
 class WindowClass(QMainWindow):
     def __init__(self, parent=None):
-
         QMainWindow.__init__(self, parent)
         self.view = ViewClass()
         # self.setCentralWidget(self.view)
@@ -602,6 +606,9 @@ class XNode(QGraphicsRectItem):
         return QRectF(-50, -50, 100, 100)'''
 
 
+
+
+
 class Edge(QGraphicsLineItem):
     def __init__(self, source, dest, parent=None):
         QGraphicsLineItem.__init__(self, parent)
@@ -616,8 +623,19 @@ class Edge(QGraphicsLineItem):
         self.prepareGeometryChange()
         self.setLine(QLineF(self.dest.pos() + QPointF(-10, -10), self.source.pos() + QPointF(-10, -10)))
 
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+
+    dw = DataWindow()
+    dw.show()
+
     wd = WindowClass()
     wd.show()
     sys.exit(app.exec_())
+
+'''
+self.clipboard = QApplication.clipboard()
+self.mime_data = self.clipboard.mimeData()
+self.pc = pyperclip
+self.text_clip = ""'''
