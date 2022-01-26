@@ -297,6 +297,7 @@ class WindowClass(QMainWindow):
         self.butt.clicked.connect(self.printButt)
         self.sub.clicked.connect(SceneClass.sub)
 
+
     def printButt(self):
         print("Print listNode")
         print(listNode)
@@ -308,7 +309,6 @@ class ViewClass(QGraphicsView):
         self.s = SceneClass()
         self.setScene(self.s)
         self.setRenderHint(QPainter.Antialiasing)
-
 
         self.setDragMode(QGraphicsView.ScrollHandDrag)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -333,13 +333,9 @@ class ViewClass(QGraphicsView):
             zoomFactor = zoomInFactor
         else:
             zoomFactor = zoomOutFactor
-
-
         self.scale(zoomFactor, zoomFactor)
-
         # Get the new position
         newPos = self.mapToScene(event.pos())
-
         # Move scene to old position
         delta = newPos - oldPos
         self.translate(delta.x(), delta.y())
@@ -366,17 +362,17 @@ class SceneClass(QGraphicsScene):
         x = event.scenePos().x()
         y = event.scenePos().y()
         qt = QTransform()
-        print("====>>", self.itemAt(x,y, qt))
-        if event.button() == Qt.LeftButton and self.node_start is None :
+        print("====>>", self.itemAt(x, y, qt))
+        if event.button() == Qt.LeftButton and self.node_start is None:
             SceneClass.prepStartEndNode = 1
             nodeP = XNode(None, event.scenePos(), 120, "Node 000")
             self.addItem(nodeP)
-            for n in range(0,16):
-                node = XNode(None, event.scenePos()+ QPoint(0,22) * n, 10, str(n).zfill(2))
+            for n in range(0, 16):
+                node = XNode(None, event.scenePos() + QPoint(0, 22) * n, 10, str(n).zfill(2))
                 # TODO Numbers node
                 self.addItem(node)
                 node.setParentItem(nodeP)
-                node.setPos(110, -130 +(22 * n))
+                node.setPos(110, -130 + (22 * n))
                 self.node_start = node
         else:
             self.node_start = None
@@ -386,9 +382,40 @@ class SceneClass(QGraphicsScene):
 
     def sub(self):
         print("sub")
-        sub = GraphicsRectItem(0,0,2100, 1500)
-        sub.setPos(0,0)
-        self.addItem(sub)
+        nodeP = XNode(None, QPointF(100,100), 90, "Node 000")
+        s=SceneClass()
+        s.addItem(nodeP)
+        s.update()
+
+        b = DataWindow()
+        t = b.nodeInfoWidget
+
+
+
+        for row in range(0,10):
+            xl = int(t.item(row, 0).text())
+            yl = int(t.item(row, 1).text())
+            namel = t.item(row, 2).text()
+            numl = t.item(row, 3).text()
+            seqNuml = t.item(row, 4).text()
+            seqNumr = t.item(row, 5).text()
+            numr = t.item(row, 6).text()
+            namer = t.item(row, 7).text()
+            yr = int(t.item(row, 8).text())
+            xr = int(t.item(row, 9).text())
+            if xl !=0 and yl!=0:
+                node = XNode(None, QPointF(0, 0) , 10, str(namel).zfill(2))
+                # TODO Numbers node
+                s.addItem(node)
+                node.setPos(QPointF(-90+xl, yl-90 + (22 * row)))
+                node.setParentItem(nodeP)
+            if xr !=0 and yr!=0:
+                node = XNode(None, QPointF(0, 0) , 10, str(namel).zfill(2))
+                # TODO Numbers node
+                s.addItem(node)
+                node.setPos(-90+xr, yr-90 + (22 * row))
+                node.setParentItem(nodeP)
+
 
     def saveNodeToGlobalList(self):
         global listNode, numberNode, temporListNodes
@@ -512,7 +539,7 @@ class XNode(QGraphicsItem):
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
-        self.setPos(position)
+        self.setPos(100,100)
         self.icolor = Qt.red
         self.setAcceptHoverEvents(True)
         self.name = name
@@ -534,7 +561,7 @@ class XNode(QGraphicsItem):
 
         p.setWidth(3)
         painter.setPen(p)
-        #painter.GraphicsRectItem(self.boundingRect())
+        painter.GraphicsRectItem(self.boundingRect())
         p = QPen(Qt.green)
         f = QFont()
         fw = QFontMetricsF(f).width(self.name)

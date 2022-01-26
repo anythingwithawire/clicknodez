@@ -53,6 +53,9 @@ class H3TableHandler:
             # do this
             pass
 
+class cclip():
+    data = ''
+
 
 class TableWidgetCustom(QTableWidget, QTableWidgetItem):
     def __init__(self, parent=None):
@@ -112,34 +115,29 @@ class TableWidgetCustom(QTableWidget, QTableWidgetItem):
         clip = ""
         i=0
         print(self.rowCount(), self.columnCount())
-        for row in range(self.rowCount()):
-            for col in range(self.columnCount()):
+        for col in range(self.columnCount()):
+            for row in range(self.rowCount()):
                 item = self.item(row, col)
                 if item.isSelected():
                     i = i + 1
                     #item = QTableWidgetItem()
                     item = self.item(row, col)
-                    clip = clip + str(item.text())+str(",")
-            clip = clip + str("\t")
-        encoded_clip = clip.encode()
-        self.text_clip = clip
-        clip_bytearray = bytearray(encoded_clip)
-        self.mime_data.setData("xls", clip_bytearray)
-        #self.clipboard.setMimeData(self.mime_data)
-        cb = pyperclip
-        cb.init_qt_clipboard()
-        cb.set_clipboard("qt")
-        cb.lazy_load_stub_copy(clip)
-        print("selected ", i, "\n", clip)
+                    clip = clip + str(item.text())+str(" \t ")
+            cclip.data = str(clip) + str("\n")
+        cclip.data = cclip.data + str("\n")
+        print("selected ", i, "\n", cclip.data)
+
 
     def paste(self):
         #self.clipboard.clear(mode=self.clipboard.Clipboard)
-        clip = ""
         i = 0
         print(self.rowCount(), self.columnCount())
-        l = self.text_clip.split(",")
-        for row in range(self.rowCount()):
-            for col in range(self.columnCount()):
+        l = cclip.data.split("\t")
+        #l = self.mime_data.data("text").split(",")
+        #l = dddd.split(',')
+        print("==l==>", l)
+        for col in range(self.columnCount()):
+            for row in range(self.rowCount()):
                 item = self.item(row, col)
                 if item.isSelected():
                     item = QTableWidgetItem()
