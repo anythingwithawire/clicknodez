@@ -27,6 +27,8 @@ mynodes = None
 if mynodes is None:
     mynodes = list()
 
+PORT = 55
+
 class GraphicsRectItem(QGraphicsRectItem):
 
     handleTopLeft = 1
@@ -295,11 +297,21 @@ class WindowClass(QMainWindow):
         self.mainWid.setLayout(self.h)
 
         self.butt.clicked.connect(self.printButt)
-        #self.sub.clicked.connect(SceneClass.sub)
+        self.sub.clicked.connect(self.sub2)
 
     def printButt(self):
         print("Print listNode")
         print(mynodes)
+
+    def sub2(self):
+        p1 = mynodes[3].parentItem()
+        p2 = mynodes[30].parentItem()
+
+        e = Edge(mynodes[3], mynodes[30])
+        mynodes[3].addEdge(e)
+        mynodes[30].addEdge(e)
+
+
 
 class ViewClass(QGraphicsView):
     def __init__(self, parent=None):
@@ -384,6 +396,7 @@ class   SceneClass(QGraphicsScene):
                 print("width, height", width, height)
                 if xl != 0 and yl != 0:
                     mynodes.append(XNode(None, QPointF(0,0), width, height, str(namel)))
+                    mynodes[-1].type = 70000
                     if (row!=0):
                         #mynodes[-1]
                         mynodes[-1].setParentItem(pnt)
@@ -429,8 +442,6 @@ class   SceneClass(QGraphicsScene):
             SceneClass.prepStartEndNode = 0
             self.saveNodeToGlobalList()
 
-    def sub(self):
-        print("sub")
 
         '''nodeP = XNode(None, QPointF(SceneClass.mouseX, SceneClass.mouseY), 90, "Node 000")
         s=SceneClass()
@@ -570,15 +581,6 @@ class Node(QGraphicsEllipseItem):
 
 
 class XNode(QGraphicsItem):
-    """
-    A simple QGraphicsItem that can be dragged around the scene.
-    Of course, this behavior is easier to achieve if you simply use the default
-    event handler implementations in place and call
-    QGraphicsItem.setFlags( QGraphicsItem.ItemIsMovable )
-
-    ...but this example shows how to do it by hand, in case you want special behavior
-    (e.g. only allowing left-right movement instead of arbitrary movement).
-    """
 
     def __init__(self, parent, position, width, height, name):
         super(XNode, self).__init__(parent)
@@ -586,7 +588,7 @@ class XNode(QGraphicsItem):
         self.setAcceptHoverEvents(True)
         self.edges = None
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
-        #self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
         #self.setPos(position)
         self.icolor = QColor(50,50,50)
@@ -657,7 +659,10 @@ class XNode(QGraphicsItem):
     def mouseReleaseEvent(self, event): pass
 
     def addEdge(self, edge):
-        self.edges.append(edge)
+        if self.edges:
+            self.edges.append(edge)
+        else:
+            self.edges = list()
 
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemSelectedChange:
@@ -701,16 +706,32 @@ class XNode(QGraphicsItem):
 class Edge(QGraphicsLineItem):
     def __init__(self, source, dest, parent=None):
         QGraphicsLineItem.__init__(self, parent)
-        self.source = source
-        self.dest = dest
-        self.source.addEdge(self)
-        self.dest.addEdge(self)
-        self.setPen(QPen(Qt.red, 3))
+        self.source = self.mapToScene(source.pos())
+        self.dest = self.mapToScene(dest.pos())
+        source.addEdge(self.source)
+        dest.addEdge(self.dest)
+        #self.source.addEdge(self)
+        #self.dest.addEdge(self)
+        #self.setPen(QPen(Qt.red, 3))
         self.adjust()
 
     def adjust(self):
         self.prepareGeometryChange()
-        self.setLine(QLineF(self.dest.pos() + QPointF(-0, -0), self.source.pos() + QPointF(-0, -0)))
+        self.setLine(QLineF(self.dest + QPointF(-0, -0), self.source + QPointF(-0, -0)))
+
+
+        self.setLine(QLineF(QPointF(-100, -200), QPointF(300, 4000)))
+
+
+        self.s=SceneClass()
+        self.s.addLine(QLineF(-100.0, -200.0, 300, 400))
+        self.update()
+        self.show()
+
+        x=1
+
+
+from dataView import H3TableHandler
 
 
 if __name__ == '__main__':
@@ -721,6 +742,9 @@ if __name__ == '__main__':
 
     wd = WindowClass()
     wd.show()
+
+    h = H3TableHandler()
+
     sys.exit(app.exec_())
 
 '''
