@@ -232,12 +232,12 @@ class DataWindow(QMainWindow, TableWidgetCustom):
         # self.nodeInfoWidget.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.nodeInfoWidget.setSelectionBehavior(QAbstractItemView.SelectItems)
         self.nodeInfoWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.nodeInfoWidget.setColumnCount(12)
+        self.nodeInfoWidget.setColumnCount(13)
         self.nodeInfoWidget.setRowCount(20)
         self.nodeInfoWidget.setGeometry(500, 0, 400, 600)
 
         self.nodeInfoWidget.setWindowTitle("Node Termination Map")
-        self.nodeInfoWidget.setHorizontalHeaderLabels((("x;y;TermName;TermNum;SeqNum;Node;SeqNum;TermNum;TermName;x;y").split(";")))
+        self.nodeInfoWidget.setHorizontalHeaderLabels((("x;y;TermName;TermNum;SeqNum;Node;SeqNum;TermNum;TermName;x;y;width;height").split(";")))
         self.nodeInfoWidget.restore()
 
         # self.restore()
