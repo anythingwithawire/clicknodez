@@ -23,7 +23,6 @@ listNode = []
 numberNode = 0
 temporListNodes = []
 
-
 mynodes = []
 
 PORT = 55
@@ -303,12 +302,24 @@ class WindowClass(QMainWindow):
         print(mynodes)
 
     def sub2(self):
-        p1 = mynodes[3].parentItem()
-        p2 = mynodes[30].parentItem()
+        p1 = ViewClass().mapToScene(int(mynodes[3].pos().x()),int(mynodes[3].pos().y()))
+        p2 = ViewClass().mapToScene(int(mynodes[20].pos().x()),int(mynodes[20].pos().y()))
 
-        e = Edge(p1, p2)
+        par1 = mynodes[3].parentItem()
+        par2 = mynodes[20].parentItem()
+
+        x1 = p1.x() + par1.pos().x()
+        y1 = p1.y() + par1.pos().y()
+        x2 = p2.x() + par2.pos().x()
+        y2 = p2.y() + par2.pos().y()
+
+        print("p1,p2:", p1, p2)
+        print("par1, par2:", par1, par2)
+        print("x1, y1, x2, y2:", x1, y1, x2, y2)
+        e = Edge(QPointF(x1, y1), QPointF(x2, y2))
+        print("Edge:", e)
         mynodes[3].addEdge(e)
-        mynodes[30].addEdge(e)
+        mynodes[20].addEdge(e)
 
 
 
@@ -357,194 +368,128 @@ class SceneClass(QGraphicsScene):
         self.node_end = None
         self.pos = None
         self.pos_end = None
-        #self.addItem(XNode())
 
     def mouseDoubleClickEvent(self, event):
-        if event.button() == Qt.MiddleButton:
-            print("MMB")
-        x = event.scenePos().x()
-        y = event.scenePos().y()
-        #qt = QTransform()
-        #print("SceneClass====>>", self.itemAt(x, y, qt))
-        if event.button() == Qt.LeftButton and self.node_start is None:
+        modifiers = QApplication.keyboardModifiers()
+        if event.button() == Qt.LeftButton and self.node_start is None and modifiers == QtCore.Qt.AltModifier:
             SceneClass.prepStartEndNode = 1
-            b = DataWindow()
-            t = b.nodeInfoWidget
-            width = int(t.item(0, 11).text())
-            height = int(t.item(0, 12).text())
-            nodeName = t.item(0, 5).text()
-
-            node = (XNode(None, QPointF(0,0), width, height, nodeName))
-            pnt = node
-            mynodes. append(node)
-            self.addItem(node)
-            node.setPos(event.scenePos())
-            self.node_start = node
-
-            for row in range(0, 15):
-                xl = int(t.item(row, 0).text())
-                yl = int(t.item(row, 1).text())
-                namel = t.item(row, 2).text()
-                numl = t.item(row, 3).text()
-                seqNuml = t.item(row, 4).text()
-                nodeName = t.item(row, 5).text()
-                seqNumr = t.item(row, 6).text()
-                numr = t.item(row, 7).text()
-                namer = t.item(row, 8).text()
-                xr = int(t.item(row, 9).text())
-                yr = int(t.item(row, 10).text())
-                width = int(t.item(row, 11).text())
-                height = int(t.item(row, 12).text())
-                print("width, height", width, height)
-                if xl != 0 and yl != 0:
-                    nodel = (XNode(None, QPointF(0,0), width, height, str(namel)))
-                    mynodes.apend(nodel)
-                    mynodes[-1].type = 70000
-                    if (row!=0):
-                        mynodes[-1].setParentItem(pnt)
-                        mynodes[-1].setPos(QPointF(xl, yl))
-                    mynodes[-1].setFlags(QGraphicsItem.ItemIsFocusable) #| QGraphicsItem.ItemIsMovable)
-                    noder = (XNode(None, QPointF(0, 0), width, height, str(namer)))
-                    mynodes.append(noder)
-                    if (row != 0):
-                        mynodes[-1].setParentItem(pnt)
-                        mynodes[-1].setPos(QPointF(xr, yr))
-                    mynodes[-1].setFlags(QGraphicsItem.ItemIsFocusable)  # | QGraphicsItem.ItemIsMovable)
-
-            # TODO Numbers node
-            self.update()
+            self.node_start = self.makeNodeFromTable(event.scenePos())
         else:
             self.node_start = None
             SceneClass.prepStartEndNode = 0
-
             self.saveNodeToGlobalList()
-            # def wheelEvent(self, source, event):
 
+        pass
+
+    def mouseMoveEvent(self, event):
+        x = event.scenePos().x()
+        y = event.scenePos().y()
+
+        x = event.scenePos().x()
+        y = event.scenePos().y()
+        self.mouseX = x
+        self.mouseY = y
+        super(SceneClass, self).mouseMoveEvent(event)
+
+    def mousePressEvent(self, event):
+        global listNode, numberNode, temporListNodes
+        modifiers = QApplication.keyboardModifiers()
+        x = event.scenePos().x()
+        y = event.scenePos().y()
+        qt = QTransform()
+
+        if event.button() == Qt.LeftButton and self.node_start and modifiers == QtCore.Qt.ControlModifier:
+            node = self.makeNodeFromTable(event.scenePos())                          #self.addItem(node)
+            self.ItemIndexMethod(self.BspTreeIndex)
+            self.node_end = node
+            edge = Edge(self.node_start, self.node_end)
+            # Save Nodes
+            if len(temporListNodes) > 0:
+                temporListNodes.append([numberNode, self.node_end.pos().x(), self.node_end.pos().y()])
+            if len(temporListNodes) == 0:
+                temporListNodes.append([numberNode, self.node_start.pos().x(), self.node_start.pos().y()])
+                numberNode += 1
+                temporListNodes.append([numberNode, self.node_end.pos().x(), self.node_end.pos().y()])
+            numberNode += 1
+            self.addItem(edge)
+            self.node_start = self.node_end
+        super(SceneClass, self).mousePressEvent(event)
 
     def saveNodeToGlobalList(self):
         global listNode, numberNode, temporListNodes
         listNode.append(temporListNodes)
         temporListNodes = []
 
-    def mouseMoveEvent(self, event):
-        x = event.scenePos().x()
-        y = event.scenePos().y()
-        qt = QTransform()
-        self.mouseX = x
-        self.mouseY = y
-        #print("mouse->", self.mouseX, self.mouseY, self)
-        #i = self.itemAt(x,y, qt)
-        #if i:
-        #    print("====>>", i)
-        super(SceneClass, self).mouseMoveEvent(event)
+    def makeNodeFromTable(self, mousePos):
+        global listNode, numberNode
+        b = DataWindow()
+        t = b.nodeInfoWidget
+        width = int(t.item(0, 11).text())
+        height = int(t.item(0, 12).text())
+        nodeName = t.item(0, 5).text()
 
-    def mousePressEvent(self, event):
-        x = event.scenePos().x()
-        y = event.scenePos().y()
-        qt = QTransform()
-        global listNode, numberNode, temporListNodes
-        if event.button() == Qt.LeftButton and self.node_start and not self.itemAt(x,y, qt):
-            node = XNode(None, QPointF(x,y), 50, 130, "fred")
-            self.addItem(node)
+        node = (XNode(None, QPointF(0, 0), width, height, nodeName))
+        pnt = node
+        mynodes.append(node)
+        self.addItem(node)
+        node.setPos(mousePos)
 
-            # TODO Numbers node
-
-            # Indexing Node?
-            self.ItemIndexMethod(self.BspTreeIndex)
-
-            #node.setPos(event.scenePos() + QPointF(10, 10))
-
-            self.node_end = node
-            edge = Edge(self.node_start, self.node_end)
-
-            # Save Nodes
-            if len(temporListNodes) > 0:
-                temporListNodes.append([numberNode,
-                                        self.node_end.pos().x(),
-                                        self.node_end.pos().y()])
-
-            if len(temporListNodes) == 0:
-                temporListNodes.append([numberNode,
-                                        self.node_start.pos().x(),
-                                        self.node_start.pos().y()])
-
+        for row in range(1, 15):                    #TODO - how many rows/columns to get
+            xl = int(t.item(row, 0).text())
+            yl = int(t.item(row, 1).text())
+            namel = t.item(row, 2).text()
+            numl = t.item(row, 3).text()
+            seqNuml = t.item(row, 4).text()
+            nodeName = t.item(row, 5).text()
+            seqNumr = t.item(row, 6).text()
+            numr = t.item(row, 7).text()
+            namer = t.item(row, 8).text()
+            xr = int(t.item(row, 9).text())
+            yr = int(t.item(row, 10).text())
+            width = int(t.item(row, 11).text())
+            height = int(t.item(row, 12).text())
+            print("width, height", width, height)
+            if xl != 0 and yl != 0:
+                nodel = (XNode(None, QPointF(0, 0), width, height, str(namel)))
+                mynodes.append(nodel)
+                mynodes[-1].setParentItem(pnt)
+                mynodes[-1].setPos(QPointF(xl, yl))
                 numberNode += 1
-                temporListNodes.append([numberNode,
-                                        self.node_end.pos().x(),
-                                        self.node_end.pos().y()])
+                x1 = (ViewClass().mapToScene(nodel.pos().x(), nodel.pos().x())).x()
+                y1 = (ViewClass().mapToScene(nodel.pos().x(), nodel.pos().y())).y()
+                listNode.append([numberNode, x1, y1])
 
-            numberNode += 1
+            if xr != 0 and yr != 0:
+                noder = (XNode(None, QPointF(0, 0), width, height, str(namer)))
+                mynodes.append(noder)
+                mynodes[-1].setParentItem(pnt)
+                mynodes[-1].setPos(QPointF(xr, yr))
+                numberNode += 1
+                x1 = (ViewClass().mapToScene(noder.pos().x(), noder.pos().x())).x()
+                y1 = (ViewClass().mapToScene(noder.pos().x(), noder.pos().y())).y()
+                listNode.append([numberNode, x1, y1])
 
-            self.addItem(edge)
-
-            self.node_start = self.node_end
-        super(SceneClass, self).mousePressEvent(event)
-
-
-
-class Node(QGraphicsEllipseItem):
-    def __init__(self, rect=QRectF(-20, -20, 20, 20), parent=None):
-        QGraphicsEllipseItem.__init__(self, rect, parent)
-        self.edges = None
-        self.setZValue(1)
-        self.setBrush(Qt.darkGray)
-        self.setFlag(QGraphicsItem.ItemIsMovable, True)
-        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
-        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
-        # self.setAcceptHoverEvents(True)
-
-    def mouseMoveEvent(self, event):
-        global temporListNodes
-        origCursorPos = event.lastScenePos()
-        actualCursorPos = event.scenePos()
-
-        origPos = self.scenePos()
-        print(origCursorPos.x(), origCursorPos.y(), "Old position of x,y")
-        if len(temporListNodes) > 0:
-            for i in range(len(temporListNodes)):
-                for j in range(len(temporListNodes[i])):
-                    print(temporListNodes[i][j], 'temporListNodes [i][j]')
-        aktualCursorPos_x = actualCursorPos.x() - origCursorPos.x() + origPos.x()
-        aktualCursorPos_y = actualCursorPos.y() - origCursorPos.y() + origPos.y()
-        self.setPos(QPointF(aktualCursorPos_x, aktualCursorPos_y))
-
-        print((aktualCursorPos_x, aktualCursorPos_y), "New position of x,y")
-
-    def mouseReleaseEvent(self, event):
-        print('x: {0}, y: {1}'.format(self.pos().x(), self.pos().y()))
-
-    def addEdge(self, edge):
-        self.edges.append(edge)
-
-    def itemChange(self, change, value):
-        if change == QGraphicsItem.ItemSelectedChange:
-            self.setBrush(Qt.green if value else Qt.darkGray)
-
-        if change == QGraphicsItem.ItemPositionHasChanged:
-            for edge in self.edges:
-                edge.adjust()
-
-        return QGraphicsItem.itemChange(self, change, value)
+        # TODO Numbers node
+        #elf.update()
+        return node  # for use as start node
 
 
 class XNode(QGraphicsItem):
-
     def __init__(self, parent, position, width, height, name):
         super(XNode, self).__init__(parent)
-        #self.XNode(None, position, size, name)
         self.setAcceptHoverEvents(True)
         self.edges = []
+        self.setZValue(1)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
         self.setPos(position)
         self.icolor = QColor(50,50,50)
         self.name = name
-        self.width=width
-        self.height=height
+        self.width = width
+        self.height = height
         self.setSelected(False)
-        self.rec=QRectF(QPointF(-self.width/2, -self.height/2), QPoint(width, height))
-
+        self.rec = QRectF(QPointF(-self.width/2, -self.height/2), QPoint(width, height))
 
     def boundingRect(self):
         adjust = 4
@@ -560,13 +505,10 @@ class XNode(QGraphicsItem):
 
         p.setWidth(3)
         painter.setPen(p)
-        #painter.GraphicsRectItem(self.boundingRect())
         p = QPen(Qt.darkBlue)
         f = QFont()
         fw = QFontMetricsF(f).width(self.name)
         fh = QFontMetricsF(f).height()
-
-
         painter.drawText(QPointF((-fw/2)+1, fh/2), self.name)
 
     def hoverEnterEvent(self, event):
@@ -581,28 +523,19 @@ class XNode(QGraphicsItem):
         self.update()
 
     def mouseMoveEvent(self, event):
-
-
         global temporListNodes
         origCursorPos = event.lastScenePos()
         actualCursorPos = event.scenePos()
-
         origPos = self.scenePos()
-        #print(origCursorPos.x(), origCursorPos.y(), "Old position of x,y")
-        #if len(temporListNodes) > 0:
-        #    for i in range(len(temporListNodes)):
-        #        for j in range(len(temporListNodes[i])):
-        #            print(temporListNodes[i][j], 'temporListNodes [i][j]')
         aktualCursorPos_x = actualCursorPos.x() - origCursorPos.x() + origPos.x()
         aktualCursorPos_y = actualCursorPos.y() - origCursorPos.y() + origPos.y()
         self.setPos(QPointF((aktualCursorPos_x), (aktualCursorPos_y)))
 
-        #print((aktualCursorPos_x, aktualCursorPos_y), "New position of x,y")'''
-
     def mousePressEvent(self, event):
         self.setSelected(True)
 
-    def mouseReleaseEvent(self, event): pass
+    def mouseReleaseEvent(self, event):
+        pass
 
     def addEdge(self, edge):
         self.edges.append(edge)
@@ -611,7 +544,6 @@ class XNode(QGraphicsItem):
         if change == QGraphicsItem.ItemSelectedChange:
             pen = QPen()
             pen.setColor(Qt.green)
-            #pen.setBrush(QBrush(Qt.darkGray), Qt.SolidPattern)
             self.icolor = (Qt.green if value else Qt.darkGray)
             self.prepareGeometryChange()
             self.update()
@@ -621,16 +553,13 @@ class XNode(QGraphicsItem):
             for edge in self.edges:
                 edge.adjust()
 
-
         return QGraphicsItem.itemChange(self, change, value)
     '''path = QPainterPath()
     path.adPath(item)
     return path'''
-
     '''
     def boundedRect(self):
         return self.rect()'''
-
     '''def paint(self, painter, option, widget):
         painter = QPainter()
         painter.begin(self)
@@ -640,23 +569,41 @@ class XNode(QGraphicsItem):
         # Draw rounded rectangle
         painter.drawPath(self.draw())
         painter.end()'''
-
     #def rect(self):
         #return self.boundingRect()
 
 class Edge(QGraphicsLineItem):
     def __init__(self, source, dest, parent=None):
         QGraphicsLineItem.__init__(self, parent)
-        self.source = source
-        self.dest = dest
-        self.source.addEdge(self)
-        self.dest.addEdge(self)
+
+        if not isinstance(source, QPointF):
+            print("====>>>Not QPointF")
+            self.source = source
+            self.dest = dest
+            self.source.addEdge(self)
+            self.dest.addEdge(self)
+
+            self.pos1 = self.dest.pos()
+            self.pos2 = self.source.pos()
+
+        if isinstance(source, QPointF):
+            print("=====>>>QPointF")
+            self.pos1 = source
+            self.pos2 = dest
+
         self.setPen(QPen(Qt.red, 3))
         self.adjust()
 
+        return
+
+
     def adjust(self):
         self.prepareGeometryChange()
-        self.setLine(QLineF(self.dest.pos() + QPointF(-10, -10), self.source.pos() + QPointF(-10, -10)))
+        self.setLine(QLineF(self.pos1, self.pos2))
+
+    '''def adjust(self):
+        self.prepareGeometryChange()
+        self.setLine(QLineF(self.dest.pos(), self.source.pos()))'''
 
         #self.setLine(QLineF(QPointF(-100, -200), QPointF(300, 4000)))
 
@@ -666,7 +613,6 @@ class Edge(QGraphicsLineItem):
         #self.update()
         #self.show()
 
-        x=1
 
 
 from dataView import H3TableHandler
@@ -681,7 +627,8 @@ if __name__ == '__main__':
     wd = WindowClass()
     wd.show()
 
-    h = H3TableHandler()
+    #h = H3TableHandler()
+
 
     sys.exit(app.exec_())
 

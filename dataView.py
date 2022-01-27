@@ -70,6 +70,14 @@ class TableWidgetCustom(QTableWidget, QTableWidgetItem):
 
         self.mime_data = ClipboardEx().clipboard.mimeData()
 
+    def colorTable(self):
+        for row in range(self.rowCount()):
+            for column in range(self.columnCount()):
+                item1 = QtWidgets.QTableWidgetItem()
+            if row % 2 == 0:
+                item1.setBackground(QtGui.QColor(255, 128, 128))
+            self.table.setItem(row,0,item1)
+
     def keyPressEvent(self, event):
         if event.matches(QKeySequence.Save):
             self.save()
